@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 
 @SpringBootApplication
 @ComponentScan
-//@MapperScan("com.makenv.mapper")
 public class Application {
     private static Logger logger = Logger.getLogger(Application.class);
 
@@ -21,21 +20,6 @@ public class Application {
     public DataSource dataSource() {
         return new org.apache.tomcat.jdbc.pool.DataSource();
     }
-
-//    @Bean
-//    public SqlSessionFactory sqlSessionFactoryBean() throws Exception {
-//
-//        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
-//        sqlSessionFactoryBean.setDataSource(dataSource());
-//
-//        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-//
-//        sqlSessionFactoryBean.setMapperLocations(resolver.getResources("classpath:/mybatis/*.xml"));
-//
-//        return sqlSessionFactoryBean.getObject();
-//    }
-
-
 
     /**
      * Start

@@ -16,9 +16,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by Administrator on 2016/12/9.
+ * Created by wrx on 2016/12/9.
  */
 public class WeChartUtils {
+    /**
+     * sha1加密
+     * @param str
+     * @return
+     */
     public static String getSha1(String str){
         if (str == null || str.length() == 0){
             return null;
@@ -59,11 +64,11 @@ public class WeChartUtils {
 
         InputStream ins = request.getInputStream();
         Document doc = reader.read(ins);
-
+        // 得到根节点元素
         Element root = doc.getRootElement();
-
+        // 得到所有元素list
         List<Element> list = root.elements();
-
+        // 将所有元素封装map
         for (Element e : list){
             map.put(e.getName(),e.getText());
         }
@@ -72,17 +77,30 @@ public class WeChartUtils {
         return map;
     }
 
+    /**
+     * 把数据封装成对象
+     * @param toUserName
+     * @param fromUserName
+     * @param content
+     * @return
+     */
     public static String initText(String toUserName,String fromUserName,String content){
         TextMessage textMessage = new TextMessage();
-        textMessage.setFromUserName(toUserName);
-        textMessage.setToUserName(fromUserName);
+        textMessage.setFromUserName(toUserName);    // 公共号把消息发送给用户时，fromUserName 和 toUserName调换一下
+        textMessage.setToUserName(fromUserName);    // 公共号把消息发送给用户时，fromUserName 和 toUserName调换一下
         textMessage.setMsgType("text");
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         textMessage.setCreateTime(sdf.format(new Date()));
         textMessage.setContent(content);
+        // 将对象转换成xml
         return textMessageToXml(textMessage);
     }
 
+    /**
+     * 将对象转换成xml格式
+     * @param textMessage
+     * @return
+     */
     public static String textMessageToXml(TextMessage textMessage){
         XStream xStream = new XStream();
         xStream.alias("xml",textMessage.getClass());

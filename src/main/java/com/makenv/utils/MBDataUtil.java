@@ -5,12 +5,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Created by Administrator on 2016/12/3.
+ * Created by wrx on 2016/12/3.
  */
 public class MBDataUtil {
-//    private static final String TEMPLATE_ID = "zvkEa5Ex6nuB0JyLQmat30_es27Yl9VO7A-YJ0V3yLc";
-    private static final String TEMPLATE_ID = "iENjkneqs9Hl0Y04cTGxvg5z08CIDUJI99cvwHTq9f4";
-    public static Map toMBData(String openID){
+    public static Map toMBData(String openID,String templateId){
         Map<String,Object> map = new LinkedHashMap<>();     //存储整个模板数据
         Map<String,Object> data = new LinkedHashMap<>();    //存储模板内data数据
 
@@ -51,8 +49,8 @@ public class MBDataUtil {
         data.put("remark",remark);
 
         map.put("touser",openID);                   //添加openID
-        map.put("template_id",TEMPLATE_ID);        //使用模板
-//        map.put("url","http://207.226.141.29:3000/static/love.html");       //详情地址
+        map.put("template_id",templateId);        //使用模板
+        map.put("url","www.baidu.com");       //详情地址,不写的话则没有点击详情这个功能
         map.put("topcolor","#008000");             //头部字体颜色
         map.put("data",data);                       //添加data数据
 

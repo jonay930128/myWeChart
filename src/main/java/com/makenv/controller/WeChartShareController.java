@@ -10,34 +10,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.util.*;
 
 /**
- * Created by Administrator on 2016/12/9.
+ * Created by wrx on 2016/12/9.
  */
 @Controller
 @RequestMapping("weChartShare")
 public class WeChartShareController {
-    private static final String token = "demo";
-//    private static final String appID = "wxfc166b6179859236";
-    private static final String appID = "wx9c4410622c03bae1";
-//    private static final String appSecret = "32655efa5edbfaaa1e07bbefbaa7468d";
-    private static final String appSecret = "a517a3144e942de698efc52d667f9005";
-//    private static final String openId = "od4KJwwfRrV8_IIIXIKMdi1P9ZiI";
-    private static final String openId = "o8yVCv8aHHbhCIiSrrILqJ0R24lY";
+    private static final String TOKEN = "xxx";              // 看心情随意填写的，要与微信公共号的配置相同
+    private static final String APPID = "xxx";               // 公共号的信息
+    private static final String APPSECRET = "xxx";          // 公共号的信息
+    private static final String OPENID = "xxx";              //关注者的安全唯一id
+    private static final String TEMPLATE_ID = "xxx";        //发送模板消息的模板id
+
+    /**
+     * 微信验证url接口，注意：接收get请求。
+     * @param signature 	微信加密签名
+     * @param timestamp   	时间戳
+     * @param nonce        随机数
+     * @param echostr     随机字符串
+     * @return
+     */
     @RequestMapping(value = "send",method = {RequestMethod.GET})
     @ResponseBody
-    public String doGet(HttpServletRequest request){
-        String signature = request.getParameter("signature");
-        String timestamp = request.getParameter("timestamp");
-        String nonce = request.getParameter("nonce");
-        String echostr = request.getParameter("echostr");
-
-        String[] arr = {token,timestamp,nonce};
+    public String doGet(String signature,String timestamp,String nonce,String echostr){
+        String[] arr = {TOKEN,timestamp,nonce};
         //排序
         Arrays.sort(arr);
         //拼接字符串
@@ -47,7 +47,7 @@ public class WeChartShareController {
         }
         //sha1加密
         String sha1 = WeChartUtils.getSha1(stringBuffer.toString());
-
+        // 若比较结果相等，原样放回echostr,随机字符串
         if (sha1.equals(signature)){
             return echostr;
         }else {
@@ -56,9 +56,16 @@ public class WeChartShareController {
 
     }
 
+    /**
+     * 接收普通用户向公共号发送的消息
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "send",method = {RequestMethod.POST})
     @ResponseBody
     public String doPost(HttpServletRequest request)throws Exception{
+        // 接收微信发过来的xml格式的数据包，把xml转换成map处理。
         Map<String,String> map = WeChartUtils.xmlToMap(request);
         String fromUserName = map.get("FromUserName");      //其实是用户的openID;
         String toUserName = map.get("ToUserName");
@@ -74,12 +81,15 @@ public class WeChartShareController {
             }
         }else if ("text".equals(msgType)){
             String str = "你发送的是："+content;
-            System.out.println(fromUserName);
             message = WeChartUtils.initText(toUserName, fromUserName, str);
         }
         return message;
     }
 
+    /**
+     * 给公共号创建菜单，在浏览器地址栏直接访问即可
+     * @throws Exception
+     */
     @RequestMapping("menu")
     @ResponseStatus(HttpStatus.OK)
     public void menu() throws Exception {
@@ -104,21 +114,25 @@ public class WeChartShareController {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(map);
 
-        String tokenTemp = HttpRequest.sendGet("https://api.weixin.qq.com/cgi-bin/token", "grant_type=client_credential&appid=" + appID + "&secret=" + appSecret + "");
+        String tokenTemp = HttpRequest.sendGet("https://api.weixin.qq.com/cgi-bin/token", "grant_type=client_credential&appid=" + APPID + "&secret=" + APPSECRET + "");
         String access_token = mapper.readValue(tokenTemp, LinkedHashMap.class).get("access_token").toString();
 
         HttpRequest.sendPost(" https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" + access_token + "", json);
     }
 
-    @RequestMapping("muban")
+    /**
+     * 发送模板消息,在浏览器地址栏直接访问即可
+     * @throws Exception
+     */
+    @RequestMapping("template")
     @ResponseStatus(HttpStatus.OK)
-    public void muban() throws Exception {
+    public void template() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         //获得access_token每天最多请求2000次，每个access_token有效期是两个小时。
-        String tokenTemp = HttpRequest.sendGet("https://api.weixin.qq.com/cgi-bin/token","grant_type=client_credential&appid="+appID+"&secret="+appSecret+"");
+        String tokenTemp = HttpRequest.sendGet("https://api.weixin.qq.com/cgi-bin/token","grant_type=client_credential&appid="+APPID+"&secret="+APPSECRET+"");
         String access_token = mapper.readValue(tokenTemp, LinkedHashMap.class).get("access_token").toString();
         //将微信模板信息转成json数据
-        String json = mapper.writeValueAsString(MBDataUtil.toMBData(openId));
+        String json = mapper.writeValueAsString(MBDataUtil.toMBData(OPENID,TEMPLATE_ID));
 
         //发送模板信息
         HttpRequest.sendPost("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token="+access_token+"",json);

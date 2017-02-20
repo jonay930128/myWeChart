@@ -1,7 +1,7 @@
 package com.makenv.model;
 
 /**
- * Created by Administrator on 2016/12/2.
+ * Created by wrx on 2016/12/2.
  */
 public class TextMessage {
     private String ToUserName;
