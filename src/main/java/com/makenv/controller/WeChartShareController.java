@@ -57,7 +57,8 @@ public class WeChartShareController {
     }
 
     /**
-     * 接收普通用户向公共号发送的消息
+     * 接收普通用户向公共号发送的消息，微信发送的是post请求，这里要指定请求方式为post
+     * 微信发过来的数据是xml格式的，微信接收数据的格式也是xml格式的，所以要对xml解析。
      * @param request
      * @return
      * @throws Exception
@@ -69,17 +70,35 @@ public class WeChartShareController {
         Map<String,String> map = WeChartUtils.xmlToMap(request);
         String fromUserName = map.get("FromUserName");      //其实是用户的openID;
         String toUserName = map.get("ToUserName");
-        String msgType = map.get("MsgType");
+        /**
+         * 这里要详细介绍一下消息类型，下面的逻辑都可以根据消息类型来执行各自的逻辑
+         * 详细类型可参考微信开发文档。
+         * 消息类型：
+         *      文本消息-text
+         *      图片消息-image
+         *      语音消息-voice
+         *      视频消息-video
+         *      链接消息-link
+         *      地理位置消息-location
+         *      事件推送-event(事件推送中包括下面三个事件)
+         *          关注-subscribe
+         *          取消关注-unsubscribe
+         *          菜单点击-CLICK、VIEW
+         */
+        String msgType = map.get("MsgType");    // 消息类型
         String content = map.get("Content");
 
         String message = null;
-        if ("event".equals(msgType)) {
-            String eventType = map.get("Event");
-            if ("subscribe".equals(eventType)) {
+        /*
+        下面的逻辑完全可以自己根据业务或者喜好自定义。根据上面介绍的消息类型，就是进行if判断而已。
+         */
+        if ("event".equals(msgType)) {  //如果是事件的话,执行下面：
+            String eventType = map.get("Event");// 得到事件类型
+            if ("subscribe".equals(eventType)) {    //事件类型是关注的话，执行下面：
                 String str = "欢迎您的关注。";
                 message = WeChartUtils.initText(toUserName, fromUserName, str);
             }
-        }else if ("text".equals(msgType)){
+        }else if ("text".equals(msgType)){  // 判断是否是文本消息
             String str = "你发送的是："+content;
             message = WeChartUtils.initText(toUserName, fromUserName, str);
         }
@@ -88,6 +107,7 @@ public class WeChartShareController {
 
     /**
      * 给公共号创建菜单，在浏览器地址栏直接访问即可
+     * 请参考微信公共号开发手册的菜单部分。
      * @throws Exception
      */
     @RequestMapping("menu")
@@ -122,6 +142,7 @@ public class WeChartShareController {
 
     /**
      * 发送模板消息,在浏览器地址栏直接访问即可
+     * 请参考微信公共号开发手册的发送模板信息部分。
      * @throws Exception
      */
     @RequestMapping("template")
@@ -133,7 +154,6 @@ public class WeChartShareController {
         String access_token = mapper.readValue(tokenTemp, LinkedHashMap.class).get("access_token").toString();
         //将微信模板信息转成json数据
         String json = mapper.writeValueAsString(MBDataUtil.toMBData(OPENID,TEMPLATE_ID));
-
         //发送模板信息
         HttpRequest.sendPost("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token="+access_token+"",json);
     }
